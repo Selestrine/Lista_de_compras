@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ShoppingCart, Plus, Trash2, Fan, TrashIcon, Check, ListTodo } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, Fan, TrashIcon, Check, ListTodo, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useShoppingList } from "@/hooks/use-shopping-list";
 import { insertShoppingItemSchema } from "@shared/schema";
 
@@ -14,11 +15,15 @@ export default function ShoppingListPage() {
     completedItems,
     totalCount,
     completedCount,
+    isLoading,
     addItem,
     toggleItem,
     deleteItem,
     clearCompleted,
     clearAll,
+    isAddingItem,
+    isUpdating,
+    isClearing,
   } = useShoppingList();
 
   const handleAddItem = () => {

@@ -1,80 +1,125 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShoppingItem, InsertShoppingItem } from "@shared/schema";
-import { shoppingListStorage } from "@/lib/storage";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export function useShoppingList() {
-  const [items, setItems] = useState<ShoppingItem[]>([]);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Load items from storage on mount
-  useEffect(() => {
-    const storedItems = shoppingListStorage.getAllItems();
-    setItems(storedItems);
-  }, []);
+  // Fetch all shopping items
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ['/api/shopping-items'],
+    queryFn: async () => {
+      const response = await fetch('/api/shopping-items');
+      if (!response.ok) {
+        throw new Error('Failed to fetch items');
+      }
+      return response.json() as Promise<ShoppingItem[]>;
+    }
+  });
 
-  const addItem = useCallback((insertItem: InsertShoppingItem) => {
-    const newItem = shoppingListStorage.addItem(insertItem);
-    setItems(prev => [...prev, newItem]);
-    toast({
-      description: "Item adicionado à lista!",
-      duration: 2000,
-    });
-  }, [toast]);
-
-  const toggleItem = useCallback((id: number) => {
-    const item = items.find(item => item.id === id);
-    if (!item) return;
-
-    const updatedItem = shoppingListStorage.updateItem(id, {
-      completed: !item.completed
-    });
-    
-    if (updatedItem) {
-      setItems(prev => prev.map(item => 
-        item.id === id ? updatedItem : item
-      ));
+  // Add item mutation
+  const addItemMutation = useMutation({
+    mutationFn: async (item: InsertShoppingItem) => {
+      return apiRequest('/api/shopping-items', 'POST', item);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
       toast({
-        description: updatedItem.completed 
+        description: "Item adicionado à lista!",
+        duration: 2000,
+      });
+    },
+    onError: () => {
+      toast({
+        description: "Erro ao adicionar item",
+        duration: 2000,
+      });
+    }
+  });
+
+  // Toggle item mutation
+  const toggleItemMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
+      return apiRequest(`/api/shopping-items/${id}`, 'PATCH', { completed });
+    },
+    onSuccess: (_, { completed }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
+      toast({
+        description: completed 
           ? "Item marcado como comprado!" 
           : "Item desmarcado!",
         duration: 2000,
       });
+    },
+    onError: () => {
+      toast({
+        description: "Erro ao atualizar item",
+        duration: 2000,
+      });
     }
-  }, [items, toast]);
+  });
 
-  const deleteItem = useCallback((id: number) => {
-    const success = shoppingListStorage.deleteItem(id);
-    if (success) {
-      setItems(prev => prev.filter(item => item.id !== id));
+  // Delete item mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/shopping-items/${id}`, 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
       toast({
         description: "Item removido da lista!",
         duration: 2000,
       });
-    }
-  }, [toast]);
-
-  const clearCompleted = useCallback(() => {
-    const completedCount = shoppingListStorage.clearCompleted();
-    if (completedCount > 0) {
-      setItems(prev => prev.filter(item => !item.completed));
+    },
+    onError: () => {
       toast({
-        description: `${completedCount} item(s) removido(s)!`,
+        description: "Erro ao remover item",
         duration: 2000,
       });
     }
-  }, [toast]);
+  });
 
-  const clearAll = useCallback(() => {
-    if (items.length === 0) return;
-    
-    const count = shoppingListStorage.clearAll();
-    setItems([]);
-    toast({
-      description: "Lista limpa!",
-      duration: 2000,
-    });
-  }, [items.length, toast]);
+  // Clear completed items mutation
+  const clearCompletedMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/shopping-items/completed', 'DELETE');
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
+      toast({
+        description: `${data?.deletedCount || 0} item(s) removido(s)!`,
+        duration: 2000,
+      });
+    },
+    onError: () => {
+      toast({
+        description: "Erro ao limpar itens",
+        duration: 2000,
+      });
+    }
+  });
+
+  // Clear all items mutation
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/shopping-items', 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
+      toast({
+        description: "Lista limpa!",
+        duration: 2000,
+      });
+    },
+    onError: () => {
+      toast({
+        description: "Erro ao limpar lista",
+        duration: 2000,
+      });
+    }
+  });
 
   const pendingItems = items.filter(item => !item.completed);
   const completedItems = items.filter(item => item.completed);
@@ -85,10 +130,19 @@ export function useShoppingList() {
     completedItems,
     totalCount: items.length,
     completedCount: completedItems.length,
-    addItem,
-    toggleItem,
-    deleteItem,
-    clearCompleted,
-    clearAll,
+    isLoading,
+    addItem: (item: InsertShoppingItem) => addItemMutation.mutate(item),
+    toggleItem: (id: number) => {
+      const item = items.find(item => item.id === id);
+      if (item) {
+        toggleItemMutation.mutate({ id, completed: !item.completed });
+      }
+    },
+    deleteItem: (id: number) => deleteItemMutation.mutate(id),
+    clearCompleted: () => clearCompletedMutation.mutate(),
+    clearAll: () => clearAllMutation.mutate(),
+    isAddingItem: addItemMutation.isPending,
+    isUpdating: toggleItemMutation.isPending || deleteItemMutation.isPending,
+    isClearing: clearCompletedMutation.isPending || clearAllMutation.isPending,
   };
 }
