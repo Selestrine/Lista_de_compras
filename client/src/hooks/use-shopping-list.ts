@@ -22,7 +22,19 @@ export function useShoppingList() {
   // Add item mutation
   const addItemMutation = useMutation({
     mutationFn: async (item: InsertShoppingItem) => {
-      return apiRequest('/api/shopping-items', 'POST', item);
+      const response = await fetch('/api/shopping-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(item),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create item');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
@@ -31,7 +43,8 @@ export function useShoppingList() {
         duration: 2000,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error adding item:', error);
       toast({
         description: "Erro ao adicionar item",
         duration: 2000,
@@ -42,7 +55,19 @@ export function useShoppingList() {
   // Toggle item mutation
   const toggleItemMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
-      return apiRequest(`/api/shopping-items/${id}`, 'PATCH', { completed });
+      const response = await fetch(`/api/shopping-items/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ completed }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
+      
+      return response.json();
     },
     onSuccess: (_, { completed }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
@@ -53,7 +78,8 @@ export function useShoppingList() {
         duration: 2000,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error updating item:', error);
       toast({
         description: "Erro ao atualizar item",
         duration: 2000,
@@ -64,7 +90,15 @@ export function useShoppingList() {
   // Delete item mutation
   const deleteItemMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/shopping-items/${id}`, 'DELETE');
+      const response = await fetch(`/api/shopping-items/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete item');
+      }
+      
+      return response.ok;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
@@ -73,7 +107,8 @@ export function useShoppingList() {
         duration: 2000,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error deleting item:', error);
       toast({
         description: "Erro ao remover item",
         duration: 2000,
@@ -84,7 +119,15 @@ export function useShoppingList() {
   // Clear completed items mutation
   const clearCompletedMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/shopping-items/completed', 'DELETE');
+      const response = await fetch('/api/shopping-items/completed', {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to clear completed items');
+      }
+      
+      return response.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
@@ -93,7 +136,8 @@ export function useShoppingList() {
         duration: 2000,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error clearing completed items:', error);
       toast({
         description: "Erro ao limpar itens",
         duration: 2000,
@@ -104,7 +148,15 @@ export function useShoppingList() {
   // Clear all items mutation
   const clearAllMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/shopping-items', 'DELETE');
+      const response = await fetch('/api/shopping-items', {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to clear all items');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping-items'] });
@@ -113,7 +165,8 @@ export function useShoppingList() {
         duration: 2000,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error clearing all items:', error);
       toast({
         description: "Erro ao limpar lista",
         duration: 2000,
