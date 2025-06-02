@@ -1,5 +1,5 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 import { shoppingItems, ShoppingItem, InsertShoppingItem } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
@@ -9,10 +9,11 @@ let useDatabase = false;
 
 try {
   if (process.env.DATABASE_URL) {
-    const sql = postgres(process.env.DATABASE_URL);
+    console.log("🔍 Attempting to connect to Supabase...");
+    const sql = neon(process.env.DATABASE_URL);
     db = drizzle(sql);
     useDatabase = true;
-    console.log("✅ PostgreSQL database configured");
+    console.log("✅ Supabase database configured successfully");
   }
 } catch (error) {
   console.error("❌ Failed to setup database connection:", error);
