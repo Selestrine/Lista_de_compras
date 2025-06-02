@@ -1,0 +1,22 @@
+Por favor, revise e corrija os seguintes erros de TypeScript neste projeto. Esses erros estão aparecendo nos logs de build durante o deploy na Vercel e, embora o build termine, eles parecem estar impedindo que o backend funcione corretamente no ambiente da Vercel.
+
+**Contexto:** O aplicativo funciona no Replit, mas falha (erro 404 ou erro ao usar a API) após o deploy na Vercel devido a estes erros de build.
+
+**Erros a Corrigir:**
+
+1.  **Erro de Tipo 'unknown' nos Blocos Catch:**
+    *   **Local:** Arquivo `server/routes.ts`, em vários blocos `catch` (ex: linha 28, 29 e outros).
+    *   **Erro:** `error TS18046: 'error' is of type 'unknown'.`
+    *   **Correção Sugerida:** Modifique todos os `catch (error)` para `catch (error: any)` para simplificar, ou, idealmente, adicione verificações como `if (error instanceof Error)` antes de acessar propriedades como `error.message` ou `error.name`.
+
+2.  **Erro de Tipo na Configuração do Vite (Desenvolvimento):**
+    *   **Local:** Arquivo `server/vite.ts`, aproximadamente na linha 39, dentro da configuração do `createServer`.
+    *   **Erro:** `error TS2322: Type '{ ... allowedHosts: boolean; ... }' is not assignable to type 'ServerOptions'. Types of property 'allowedHosts' are incompatible. Type 'boolean' is not assignable to type 'true | string[] | undefined'.`
+    *   **Correção Sugerida:** Altere a linha `allowedHosts: boolean` (ou similar) para `allowedHosts: true`.
+
+3.  **Erro de Propriedade Inexistente ao Criar Item:**
+    *   **Local:** Arquivo `server/storage.ts`, dentro da função `createShoppingItem`, na chamada `.insert({...})` do Supabase (aproximadamente linha 118).
+    *   **Erro:** `error TS2339: Property 'completed' does not exist on type '{ name: string; }'.`
+    *   **Correção Sugerida:** Altere a linha `completed: item.completed || false` para `completed: false`, pois o tipo `InsertShoppingItem` (variável `item`) não possui a propriedade `completed`, e novos itens devem ser criados com `completed` definido como `false`.
+
+Por favor, aplique essas correções diretamente no código do projeto.

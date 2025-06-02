@@ -99,7 +99,7 @@ export class DatabaseStorage implements IStorage {
         completed: item.completed,
         createdAt: new Date(item.created_at)
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Supabase API error, falling back to memory:", error);
       return await this.memoryFallback.getAllShoppingItems();
     }
@@ -115,7 +115,7 @@ export class DatabaseStorage implements IStorage {
         .from('shopping_items')
         .insert({
           name: item.name,
-          completed: item.completed || false
+          completed: false
         })
         .select()
         .single();
@@ -128,7 +128,7 @@ export class DatabaseStorage implements IStorage {
         completed: data.completed,
         createdAt: new Date(data.created_at)
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Supabase API error, falling back to memory:", error);
       return await this.memoryFallback.createShoppingItem(item);
     }
@@ -159,7 +159,7 @@ export class DatabaseStorage implements IStorage {
         completed: data.completed,
         createdAt: new Date(data.created_at)
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Supabase API error, falling back to memory:", error);
       return await this.memoryFallback.updateShoppingItem(id, updates);
     }
@@ -178,7 +178,7 @@ export class DatabaseStorage implements IStorage {
       
       if (error) throw error;
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Supabase API error, falling back to memory:", error);
       return await this.memoryFallback.deleteShoppingItem(id);
     }
@@ -198,7 +198,7 @@ export class DatabaseStorage implements IStorage {
       
       if (error) throw error;
       return data?.length || 0;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Supabase API error, falling back to memory:", error);
       return await this.memoryFallback.clearCompletedItems();
     }
@@ -218,7 +218,7 @@ export class DatabaseStorage implements IStorage {
       
       if (error) throw error;
       return data?.length || 0;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Supabase API error, falling back to memory:", error);
       return await this.memoryFallback.clearAllItems();
     }

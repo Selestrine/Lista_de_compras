@@ -11,7 +11,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const items = await storage.getAllShoppingItems();
       res.json(items);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error fetching shopping items:`, error);
       res.status(500).json({ error: "Failed to fetch shopping items" });
     }
@@ -23,7 +23,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertShoppingItemSchema.parse(req.body);
       const newItem = await storage.createShoppingItem(validatedData);
       res.status(201).json(newItem);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error creating shopping item:`, error);
       if (error.name === 'ZodError') {
         res.status(400).json({ error: "Invalid item data", details: error.errors });
@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json(updatedItem);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error updating shopping item:`, error);
       res.status(500).json({ error: "Failed to update shopping item" });
     }
@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error deleting shopping item:`, error);
       res.status(500).json({ error: "Failed to delete shopping item" });
     }
@@ -78,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const deletedCount = await storage.clearCompletedItems();
       res.json({ deletedCount });
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error clearing completed items:`, error);
       res.status(500).json({ error: "Failed to clear completed items" });
     }
@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const deletedCount = await storage.clearAllItems();
       res.json({ deletedCount });
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error clearing all items:`, error);
       res.status(500).json({ error: "Failed to clear all items" });
     }
