@@ -1,22 +1,22 @@
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
-import { shoppingItems, ShoppingItem, InsertShoppingItem } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { createClient } from '@supabase/supabase-js';
+import { ShoppingItem, InsertShoppingItem } from "@shared/schema";
 
-// Initialize database connection
-let db: any = null;
+// Initialize Supabase client
+let supabase: any = null;
 let useDatabase = false;
 
 try {
-  if (process.env.DATABASE_URL) {
-    console.log("🔍 Attempting to connect to Supabase...");
-    const sql = neon(process.env.DATABASE_URL);
-    db = drizzle(sql);
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+    console.log("🔍 Connecting to Supabase API...");
+    supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY
+    );
     useDatabase = true;
-    console.log("✅ Supabase database configured successfully");
+    console.log("✅ Supabase API client configured successfully");
   }
 } catch (error) {
-  console.error("❌ Failed to setup database connection:", error);
+  console.error("❌ Failed to setup Supabase client:", error);
   useDatabase = false;
 }
 
@@ -81,104 +81,146 @@ export class DatabaseStorage implements IStorage {
   private memoryFallback = new MemoryStorage();
 
   async getAllShoppingItems(): Promise<ShoppingItem[]> {
-    if (!useDatabase || !db) {
-      return this.memoryFallback.getAllShoppingItems();
-    }
-
     try {
-      const items = await db
-        .select()
-        .from(shoppingItems)
-        .orderBy(desc(shoppingItems.createdAt));
-      return items;
+      if (!useDatabase || !supabase) {
+        return await this.memoryFallback.getAllShoppingItems();
+      }
+      
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      return data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        completed: item.completed,
+        createdAt: new Date(item.created_at)
+      }));
     } catch (error) {
-      console.error("Database error, using memory storage:", error);
-      return this.memoryFallback.getAllShoppingItems();
+      console.error("Supabase API error, falling back to memory:", error);
+      return await this.memoryFallback.getAllShoppingItems();
     }
   }
 
   async createShoppingItem(item: InsertShoppingItem): Promise<ShoppingItem> {
-    if (!useDatabase || !db) {
-      return this.memoryFallback.createShoppingItem(item);
-    }
-
     try {
-      const [newItem] = await db
-        .insert(shoppingItems)
-        .values(item)
-        .returning();
-      return newItem;
+      if (!useDatabase || !supabase) {
+        return await this.memoryFallback.createShoppingItem(item);
+      }
+      
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .insert({
+          name: item.name,
+          completed: item.completed || false
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      return {
+        id: data.id,
+        name: data.name,
+        completed: data.completed,
+        createdAt: new Date(data.created_at)
+      };
     } catch (error) {
-      console.error("Database error, using memory storage:", error);
-      return this.memoryFallback.createShoppingItem(item);
+      console.error("Supabase API error, falling back to memory:", error);
+      return await this.memoryFallback.createShoppingItem(item);
     }
   }
 
   async updateShoppingItem(id: number, updates: Partial<ShoppingItem>): Promise<ShoppingItem | null> {
-    if (!useDatabase || !db) {
-      return this.memoryFallback.updateShoppingItem(id, updates);
-    }
-
     try {
-      const [updatedItem] = await db
-        .update(shoppingItems)
-        .set(updates)
-        .where(eq(shoppingItems.id, id))
-        .returning();
-      return updatedItem || null;
+      if (!useDatabase || !supabase) {
+        return await this.memoryFallback.updateShoppingItem(id, updates);
+      }
+      
+      const updateData: any = {};
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.completed !== undefined) updateData.completed = updates.completed;
+      
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      return {
+        id: data.id,
+        name: data.name,
+        completed: data.completed,
+        createdAt: new Date(data.created_at)
+      };
     } catch (error) {
-      console.error("Database error, using memory storage:", error);
-      return this.memoryFallback.updateShoppingItem(id, updates);
+      console.error("Supabase API error, falling back to memory:", error);
+      return await this.memoryFallback.updateShoppingItem(id, updates);
     }
   }
 
   async deleteShoppingItem(id: number): Promise<boolean> {
-    if (!useDatabase || !db) {
-      return this.memoryFallback.deleteShoppingItem(id);
-    }
-
     try {
-      const result = await db
-        .delete(shoppingItems)
-        .where(eq(shoppingItems.id, id))
-        .returning();
-      return result.length > 0;
+      if (!useDatabase || !supabase) {
+        return await this.memoryFallback.deleteShoppingItem(id);
+      }
+      
+      const { error } = await supabase
+        .from('shopping_items')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return true;
     } catch (error) {
-      console.error("Database error, using memory storage:", error);
-      return this.memoryFallback.deleteShoppingItem(id);
+      console.error("Supabase API error, falling back to memory:", error);
+      return await this.memoryFallback.deleteShoppingItem(id);
     }
   }
 
   async clearCompletedItems(): Promise<number> {
-    if (!useDatabase || !db) {
-      return this.memoryFallback.clearCompletedItems();
-    }
-
     try {
-      const deletedItems = await db
-        .delete(shoppingItems)
-        .where(eq(shoppingItems.completed, true))
-        .returning();
-      return deletedItems.length;
+      if (!useDatabase || !supabase) {
+        return await this.memoryFallback.clearCompletedItems();
+      }
+      
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .delete()
+        .eq('completed', true)
+        .select();
+      
+      if (error) throw error;
+      return data?.length || 0;
     } catch (error) {
-      console.error("Database error, using memory storage:", error);
-      return this.memoryFallback.clearCompletedItems();
+      console.error("Supabase API error, falling back to memory:", error);
+      return await this.memoryFallback.clearCompletedItems();
     }
   }
 
   async clearAllItems(): Promise<number> {
-    if (!useDatabase || !db) {
-      return this.memoryFallback.clearAllItems();
-    }
-
     try {
-      const deletedItems = await db
-        .delete(shoppingItems)
-        .returning();
-      return deletedItems.length;
+      if (!useDatabase || !supabase) {
+        return await this.memoryFallback.clearAllItems();
+      }
+      
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .delete()
+        .neq('id', 0)
+        .select();
+      
+      if (error) throw error;
+      return data?.length || 0;
     } catch (error) {
-      console.error("Database error, using memory storage:", error);
-      return this.memoryFallback.clearAllItems();
+      console.error("Supabase API error, falling back to memory:", error);
+      return await this.memoryFallback.clearAllItems();
     }
   }
 }
