@@ -46,16 +46,16 @@ export default function ShoppingListPage() {
     <div className="max-w-md mx-auto p-4 min-h-screen">
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-slate-700 mb-2">
-          <ShoppingCart className="inline-block w-6 h-6 text-primary mr-2" />
+        <h1 className="text-2xl font-semibold text-black dark:text-white mb-2">
+          <ShoppingCart className="inline-block w-6 h-6 text-black dark:text-white mr-2" />
           Lista de Compras
         </h1>
-        <p className="text-slate-500 text-sm">Organize suas compras de forma simples</p>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">Organize suas compras de forma simples</p>
       </div>
 
       {/* Add Item Form */}
       <div className="mb-6">
-        <Card className="shadow-sm border-slate-200">
+        <Card className="shadow-sm border-gray-200 dark:border-gray-700">
           <CardContent className="p-4">
             <div className="flex gap-2">
               <Input
@@ -64,11 +64,11 @@ export default function ShoppingListPage() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="flex-1 px-4 py-3 border-slate-300 focus:ring-2 focus:ring-primary focus:border-transparent text-slate-700 placeholder-slate-400"
+                className="flex-1 px-4 py-3 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-800"
               />
               <Button
                 onClick={handleAddItem}
-                className="px-6 py-3 bg-primary hover:bg-indigo-600 text-white font-medium transition-colors duration-200 min-w-[80px]"
+                className="px-6 py-3 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-black font-medium transition-colors duration-200 min-w-[80px]"
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -82,21 +82,21 @@ export default function ShoppingListPage() {
         {/* Empty State */}
         {showEmptyState && (
           <div className="text-center py-12">
-            <div className="text-slate-400 mb-4">
+            <div className="text-gray-400 dark:text-gray-500 mb-4">
               <ListTodo className="w-16 h-16 mx-auto" />
             </div>
-            <p className="text-slate-500 text-lg font-medium mb-2">Sua lista está vazia</p>
-            <p className="text-slate-400 text-sm">Adicione seu primeiro item acima</p>
+            <p className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">Sua lista está vazia</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm">Adicione seu primeiro item acima</p>
           </div>
         )}
 
         {/* Items Counter */}
         {!showEmptyState && (
           <div className="flex justify-between items-center mb-4">
-            <span className="text-slate-600 font-medium">
+            <span className="text-gray-700 dark:text-gray-300 font-medium">
               {totalCount} itens na lista
             </span>
-            <span className="text-emerald-600 font-medium">
+            <span className="text-green-600 dark:text-green-400 font-medium">
               {completedCount} comprados
             </span>
           </div>
@@ -107,23 +107,23 @@ export default function ShoppingListPage() {
           <div className="space-y-2">
             {/* Pending Items */}
             {pendingItems.map((item) => (
-              <Card key={item.id} className="shadow-sm border-slate-200 transition-all duration-200 hover:shadow-md">
+              <Card key={item.id} className="shadow-sm border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md bg-white dark:bg-gray-800">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleItem(item.id)}
-                      className="w-6 h-6 p-0 border-2 border-slate-300 rounded-full hover:border-primary transition-colors duration-200"
+                      className="w-6 h-6 p-0 border-2 border-gray-300 dark:border-gray-600 rounded-full hover:border-black dark:hover:border-white transition-colors duration-200"
                     >
-                      <Check className="w-3 h-3 text-primary opacity-0" />
+                      <Check className="w-3 h-3 text-black dark:text-white opacity-0" />
                     </Button>
-                    <span className="flex-1 text-slate-700 font-medium">{item.name}</span>
+                    <span className="flex-1 text-black dark:text-white font-medium">{item.name}</span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => deleteItem(item.id)}
-                      className="w-8 h-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-200"
+                      className="w-8 h-8 p-0 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all duration-200"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -134,23 +134,23 @@ export default function ShoppingListPage() {
 
             {/* Completed Items */}
             {completedItems.map((item) => (
-              <Card key={item.id} className="bg-slate-50 border-slate-200 transition-all duration-200">
+              <Card key={item.id} className="bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 transition-all duration-200">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleItem(item.id)}
-                      className="w-6 h-6 p-0 bg-emerald-500 border-2 border-emerald-500 rounded-full hover:bg-emerald-600 transition-colors duration-200"
+                      className="w-6 h-6 p-0 bg-green-500 dark:bg-green-600 border-2 border-green-500 dark:border-green-600 rounded-full hover:bg-green-600 dark:hover:bg-green-700 transition-colors duration-200"
                     >
                       <Check className="w-3 h-3 text-white" />
                     </Button>
-                    <span className="flex-1 text-slate-500 line-through font-medium">{item.name}</span>
+                    <span className="flex-1 text-gray-500 dark:text-gray-400 line-through font-medium">{item.name}</span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => deleteItem(item.id)}
-                      className="w-8 h-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-200"
+                      className="w-8 h-8 p-0 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all duration-200"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -164,12 +164,12 @@ export default function ShoppingListPage() {
 
       {/* Actions Footer */}
       {!showEmptyState && (
-        <div className="mt-8 pt-6 border-t border-slate-200">
+        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex gap-3">
             <Button
               onClick={clearCompleted}
               variant="secondary"
-              className="flex-1 px-4 py-3 bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium transition-colors duration-200"
+              className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-colors duration-200"
               disabled={completedCount === 0}
             >
               <Fan className="w-4 h-4 mr-2" />
@@ -179,22 +179,22 @@ export default function ShoppingListPage() {
               <AlertDialogTrigger asChild>
                 <Button
                   variant="destructive"
-                  className="flex-1 px-4 py-3 bg-red-50 text-red-600 hover:bg-red-100 font-medium transition-colors duration-200"
+                  className="flex-1 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 font-medium transition-colors duration-200"
                 >
                   <TrashIcon className="w-4 h-4 mr-2" />
                   Limpar tudo
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Limpar toda a lista?</AlertDialogTitle>
-                  <AlertDialogDescription>
+                  <AlertDialogTitle className="text-black dark:text-white">Limpar toda a lista?</AlertDialogTitle>
+                  <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
                     Esta ação não pode ser desfeita. Todos os itens da sua lista de compras serão removidos permanentemente.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={clearAll} className="bg-red-600 hover:bg-red-700">
+                  <AlertDialogCancel className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={clearAll} className="bg-red-600 hover:bg-red-700 text-white">
                     Sim, limpar tudo
                   </AlertDialogAction>
                 </AlertDialogFooter>
